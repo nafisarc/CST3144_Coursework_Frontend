@@ -87,7 +87,6 @@
 
             <!-- Grid wrapper -->
             <div v-if="showLesson" class="lessons-grid">
-                <!-- NOTE: this now iterates sortedLessons -->
                 <div v-for="lesson in sortedLessons" :key="lesson.id" class="lesson-card">
                     <figure>
                         <img :src="lesson.image" :alt="lesson.title">
@@ -123,7 +122,7 @@
                 </div>
             </div>
 
-            <!-- CHECKOUT: Cart preview + two-column layout -->
+            <!-- CHECKOUT -->
             <div v-else>
                 <!-- Cart items preview (appears only if cart has items) -->
                 <section class="cart-items-section" v-if="cartItemCount > 0">
@@ -242,7 +241,8 @@
             el:'#app',
             data: {
                 sitename:'After School Lessons',
-                lessons: lessons,
+                // Filled from API
+                lessons: [],
                 states: {
                         AL: 'Alabama',
                         AR: 'Arizona',
@@ -263,15 +263,34 @@
                     dontSendGift: 'Do not send as a gift'
                 },
 
-                // search-related
+                // search
                 searchQuery: '',
                 searchResults: [],
                 _searchTimer: null,
 
-                // NEW sorting state (minimal code change)
-                sortKey: 'title',    // 'title' | 'price' | 'location' | 'availability'
-                sortDir: 'asc'       // 'asc' | 'desc'
+                // Sorting state
+                sortKey: 'title',  
+                sortDir: 'asc'     
             },
+
+            // Load lessons from backend as soon as Vue is created
+            created: function () {
+                var self = this;
+
+                if (typeof fetchLessons === "function") {
+                    fetchLessons()
+                        .then(function (data) {
+                            console.log("Fetched lessons from API:", data);
+                            self.lessons = data;
+                        })
+                        .catch(function (err) {
+                            console.error("Could not load lessons from API.", err);
+                        });
+                } else {
+                    console.error("fetchLessons() is not defined. Check lessons.js is loaded.");
+                }
+            },
+
             methods:{                
                 showCheckout: function() {
                     this.showLesson = !this.showLesson;
@@ -279,7 +298,7 @@
                 submitForm: function(){
                     alert('Order submitted!');
                 },
-                // count how many of a specific lesson id are in the cart
+                // count lesson id in the cart
                 cartCount: function(id){
                     const targetId = Number(id);
                     let count = 0;
@@ -291,7 +310,7 @@
                     return count;
                 },
 
-                // returns true if THIS lesson still has slots left
+                // returns true if the lesson still has slots left
                 canAddToCart: function(lesson){
                     const id = Number(lesson.id);
                     const available = Number(lesson.availableInventory) || 0;
@@ -312,7 +331,7 @@
                     if (idx > -1) this.cart.splice(idx, 1);
                 },
 
-                /* SEARCH helpers */
+                // SEARCH helpers
                 _doSearch: function() {
                   const q = String(this.searchQuery || '').trim().toLowerCase();
                   if (!q) {
@@ -336,7 +355,7 @@
                   }
                 },
 
-                // NEW: toggle sort direction
+                // Toggle sort direction
                 toggleSortDir: function() {
                   this.sortDir = this.sortDir === 'asc' ? 'desc' : 'asc';
                 }
@@ -392,7 +411,7 @@
                     return this.cartItems.reduce(function(s, it) { return s + Number(it.subtotal); }, 0);
                 },
 
-                // NEW computed sortedLessons (uses sortKey + sortDir)
+                // Computed sortedLessons
                 sortedLessons: function () {
                     var lessonsArray = this.lessons.slice(0);
                     var key = this.sortKey;
