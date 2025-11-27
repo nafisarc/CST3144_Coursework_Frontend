@@ -106,17 +106,17 @@
                                 <span v-for="n in 5-lesson.rating">☆</span>
                             </span>
 
-                            <button v-on:click="addToCart(lesson)" v-if="canAddToCart(lesson)">
+                            <button v-on:click="addToCart(lesson)" :disabled="!canAddToCart(lesson)">
                                 Add to cart
                             </button>
 
-                            <span v-if="lesson.availableInventory === cartCount(lesson.id)">
+                            <span v-if="lesson.availableInventory === cartCount(lesson.id)" class="status-full">
                                 All out!
                             </span>
-                            <span v-else-if="lesson.availableInventory - cartCount(lesson.id) < 3">
+                            <span v-else-if="lesson.availableInventory - cartCount(lesson.id) < 3" class="status-warning">
                                 Only {{lesson.availableInventory - cartCount(lesson.id)}} left!
                             </span>
-                            <span v-else>Book now!</span>
+                            <span v-else class="status-ok">Book now!</span>
                         </div>
                     </div>
                 </div>
@@ -165,68 +165,47 @@
                     <div class="checkout-form">
                         <h2>Checkout</h2>
 
-                        <label><strong>First Name:</strong>
-                            <input v-model.trim="order.firstName" />
+                        <label><strong>Full Name:</strong>
+                            <input v-model.trim="order.fullName" type="text" />
+                            <span v-if="order.fullName && !isFullNameValid" class="field-error">
+                              Name must contain letters and spaces only.
+                            </span>
                         </label>
 
-                        <label><strong>Last Name:</strong>
-                            <input v-model="order.lastName" />
-                        </label>
-
-                        <label><strong>Address:</strong>
-                            <input v-model="order.address" />
-                        </label>
-
-                        <label><strong>City:</strong>
-                            <input v-model="order.city" />
+                        <label><strong>Phone Number:</strong>
+                            <input v-model="order.number" />
+                            <span v-if="order.number && !isNumberValid" class="field-error">
+                                Phone number must contain digits only.
+                            </span>
                         </label>
 
                         <label><strong>State:</strong>
-                            <select v-model="order.state">
-                                <option disabled value="">State</option>
-                                <option v-bind:value="states.AL">AL</option>
-                                <option v-bind:value="states.AR">AR</option>
-                                <option v-bind:value="states.CA">CA</option>
-                                <option v-bind:value="states.NV">NV</option>
-                            </select>
+                          <select v-model="order.state">
+                            <option disabled value="">State</option>
+                            <!-- auto-generate all states from Vue data -->
+                            <option 
+                              v-for="(name, code) in states" 
+                              :key="code" 
+                              :value="name">
+                              {{ name }}
+                            </option>
+                          </select>
                         </label>
-
-                        <label><strong>Zip/Postal Code:</strong>
-                            <input v-model="order.zip" />
-                        </label>
-
-                        <div class="checkbox-row">
-                            <input type="checkbox" id="gift" value="true" v-model="order.gift" v-bind:true-value="order.sendGift" v-bind:false-value="order.dontSendGift">
-                            <label for="gift">Ship As Gift?</label>
-                        </div>
-
-                        <div class="radio-row">
-                            <input type="radio" id="home" value="Home" v-model="order.method">
-                            <label for="home">Home</label>
-
-                            <input type="radio" id="business" value="Business" v-model="order.method">
-                            <label for="business">Business</label>
-                        </div>
                     </div>
 
                     <!-- Right: order summary -->
                     <div class="order-summary">
                         <h2>Order Information</h2>
 
-                        <div class="summary-line"><strong>First Name:</strong> <span>{{order.firstName}}</span></div>
-                        <div class="summary-line"><strong>Last Name:</strong> <span>{{order.lastName}}</span></div>
-                        <div class="summary-line"><strong>Address:</strong> <span>{{order.address}}</span></div>
-                        <div class="summary-line"><strong>City:</strong> <span>{{order.city}}</span></div>
-                        <div class="summary-line"><strong>Zip:</strong> <span>{{order.zip}}</span></div>
+                        <div class="summary-line"><strong>Full Name:</strong> <span>{{order.fullName}}</span></div>
+                        <div class="summary-line"><strong>Phone Number:</strong> <span>{{order.number}}</span></div>
                         <div class="summary-line"><strong>State:</strong> <span>{{order.state}}</span></div>
-                        <div class="summary-line"><strong>Gift:</strong> <span>{{order.gift}}</span></div>
-                        <div class="summary-line"><strong>Method:</strong> <span>{{order.method}}</span></div>
 
                         <!-- Place order button -->
                         <button 
                         class="place-order-btn" 
                         v-on:click="submitForm" 
-                        :disabled="cartItemCount === 0">
+                        :disabled="cartItemCount === 0 || !isOrderValid">
                         Place Order
                         </button>
 
@@ -244,24 +223,21 @@
                 // Filled from API
                 lessons: [],
                 states: {
-                        AL: 'Alabama',
-                        AR: 'Arizona',
-                        CA: 'California',
-                        NV: 'Nevada'
+                        AD: 'Abu Dhabi',
+                        DXB: 'Dubai',
+                        AJ: 'Ajman',
+                        SH: 'Sharjah',
+                        FJ: 'Fujairah'
                     },
                 cart: [],
                 showLesson: true,
                 order: {
-                    firstName: '',
-                    lastName: '',
-                    address: '',
-                    city: '',
-                    zip: '',
+                    fullName: '',
+                    number: '',
                     state: '',
-                    method: 'Home',
-                    sendGift: 'Send as a gift',
-                    dontSendGift: 'Do not send as a gift'
                 },
+
+                triedSubmit: false,
 
                 // search
                 searchQuery: '',
@@ -295,9 +271,58 @@
                 showCheckout: function() {
                     this.showLesson = !this.showLesson;
                 },
-                submitForm: function(){
-                    alert('Order submitted!');
+                submitForm: function () {
+                    this.triedSubmit = true;
+
+                    // Front-end validation
+                    if (!this.isOrderValid || this.cartItemCount === 0) {
+                        alert('Please fill in all details correctly before placing your order.');
+                        return;
+                    }
+
+                    const orderPayload = {
+                        customerName: this.order.fullName,
+                        phoneNumber: this.order.number,
+                        state: this.order.state,
+
+                        // cartSummary: one entry per lesson, with its id and qty
+                        items: this.cartItems.map(function (item) {
+                            return {
+                                lessonId: item.lesson.id,      
+                                title: item.lesson.title,      
+                                spacesBooked: item.qty         
+                            };
+                        }),
+
+                        totalAmount: this.cartTotal,          
+                        createdAt: new Date().toISOString() 
+                    };
+
+                    var self = this;
+
+                    // Call POST helper from lessons.js
+                    saveOrder(orderPayload)
+                        .then(function (savedDoc) {
+                            console.log("Order saved:", savedDoc);
+
+                            alert('Order submitted! Your reference id is: ' + savedDoc._id);
+
+                            // Clear cart + form after successful save
+                            self.cart = [];
+                            self.order.fullName = '';
+                            self.order.number = '';
+                            self.order.state = '';
+                            self.triedSubmit = false;
+
+                            // Switch back to lesson view
+                            self.showLesson = true;
+                        })
+                        .catch(function (err) {
+                            console.error("Error while submitting order:", err);
+                            alert('There was a problem saving your order. Please try again.');
+                        });
                 },
+
                 // count lesson id in the cart
                 cartCount: function(id){
                     const targetId = Number(id);
@@ -381,6 +406,21 @@
             },
 
             computed: {
+              isFullNameValid: function () {
+                  // letters + spaces only, at least 2 characters
+                  return /^[A-Za-z\s]{2,}$/.test(this.order.fullName);
+              },
+              isNumberValid: function () {
+                  // digits only, at least 7 digits (you can tweak)
+                  return /^[0-9]{9,}$/.test(this.order.number);
+              },
+              isOrderValid: function () {
+                  return (
+                      this.isFullNameValid &&
+                      this.isNumberValid &&
+                      this.order.state   // not empty
+                  );
+              },
                 cartItemCount: function() {
                     return this.cart.length ;
                 },
