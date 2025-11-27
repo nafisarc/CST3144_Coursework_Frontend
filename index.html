@@ -280,48 +280,70 @@
                         return;
                     }
 
+                    // 1) Build the order payload
                     const orderPayload = {
                         customerName: this.order.fullName,
                         phoneNumber: this.order.number,
                         state: this.order.state,
 
-                        // cartSummary: one entry per lesson, with its id and qty
+                        // one item per lesson in cart
                         items: this.cartItems.map(function (item) {
                             return {
-                                lessonId: item.lesson.id,      
-                                title: item.lesson.title,      
-                                spacesBooked: item.qty         
+                                lessonId: item.lesson.id,
+                                title: item.lesson.title,
+                                spacesBooked: item.qty
                             };
                         }),
 
-                        totalAmount: this.cartTotal,          
-                        createdAt: new Date().toISOString() 
+                        totalAmount: this.cartTotal,
+                        createdAt: new Date().toISOString()
                     };
 
-                    var self = this;
+                    const self = this;
 
-                    // Call POST helper from lessons.js
+                    // 2) First POST the order
                     saveOrder(orderPayload)
                         .then(function (savedDoc) {
                             console.log("Order saved:", savedDoc);
 
+                            // 3) After order is saved, build PUT requests
+                            const updatePromises = self.cartItems.map(function (item) {
+                                const lessonId = item.lesson.id;
+
+                                // new availableInventory = old availableInventory - qty booked
+                                const newAvailable = item.lesson.availableInventory - item.qty;
+
+                                return updateLessonSpaces(lessonId, newAvailable)
+                                    .then(function () {
+                                        // Also update Vue local state so UI reflects new spaces immediately
+                                        item.lesson.availableInventory = newAvailable;
+                                    });
+                            });
+
+                            // Wait for all PUTs to complete
+                            return Promise.all(updatePromises).then(function () {
+                                return savedDoc; // pass it along to the next then()
+                            });
+                        })
+                        .then(function (savedDoc) {
+                            // 4) All good: notify user & reset UI
                             alert('Order submitted! Your reference id is: ' + savedDoc._id);
 
-                            // Clear cart + form after successful save
                             self.cart = [];
                             self.order.fullName = '';
                             self.order.number = '';
                             self.order.state = '';
                             self.triedSubmit = false;
 
-                            // Switch back to lesson view
+                            // Go back to lesson list
                             self.showLesson = true;
                         })
                         .catch(function (err) {
-                            console.error("Error while submitting order:", err);
-                            alert('There was a problem saving your order. Please try again.');
+                            console.error("Error while submitting order and updating lessons:", err);
+                            alert('There was a problem saving your order or updating spaces. Please try again.');
                         });
                 },
+
 
                 // count lesson id in the cart
                 cartCount: function(id){

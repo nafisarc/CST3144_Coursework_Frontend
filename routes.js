@@ -39,3 +39,26 @@ function saveOrder(orderData) {
       throw error;
     });
 }
+
+// Updates the lessons collection
+function updateLessonSpaces(lessonId, newAvailable) {
+  return fetch(`${API_BASE}/lessons/${lessonId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      availableInventory: newAvailable
+    })
+  })
+    .then(function (response) {
+      if (!response.ok) {
+        throw new Error("Failed to update lesson " + lessonId + ": " + response.status);
+      }
+      return response.json();
+    })
+    .catch(function (error) {
+      console.error("Error updating lesson spaces:", error);
+      throw error;
+    });
+}
