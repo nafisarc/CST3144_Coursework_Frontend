@@ -27,7 +27,7 @@ function fetchLessons(searchQuery) {
 }
 
 
-// * POST /collection/orders
+// POST /collection/orders
 function saveOrder(orderData) {
   return fetch(`${API_BASE}/orders`, {
     method: "POST",
@@ -40,7 +40,7 @@ function saveOrder(orderData) {
       if (!response.ok) {
         throw new Error("Failed to save order: " + response.status);
       }
-      return response.json(); // the document we sent + _id from Mongo
+      return response.json(); 
     })
     .catch(function (error) {
       console.error("Error saving order to API:", error);

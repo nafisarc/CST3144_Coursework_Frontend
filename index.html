@@ -310,23 +310,21 @@
                             const updatePromises = self.cartItems.map(function (item) {
                                 const lessonId = item.lesson.id;
 
-                                // new availableInventory = old availableInventory - qty booked
                                 const newAvailable = item.lesson.availableInventory - item.qty;
 
                                 return updateLessonSpaces(lessonId, newAvailable)
                                     .then(function () {
-                                        // Also update Vue local state so UI reflects new spaces immediately
                                         item.lesson.availableInventory = newAvailable;
                                     });
                             });
 
                             // Wait for all PUTs to complete
                             return Promise.all(updatePromises).then(function () {
-                                return savedDoc; // pass it along to the next then()
+                                return savedDoc; 
                             });
                         })
                         .then(function (savedDoc) {
-                            // 4) All good: notify user & reset UI
+                            // 4) Notify user & reset UI
                             alert('Order submitted! Your reference id is: ' + savedDoc._id);
 
                             self.cart = [];
@@ -357,7 +355,7 @@
                     return count;
                 },
 
-                // returns true if the lesson still has slots left
+                // return true if the lesson still has slots left
                 canAddToCart: function(lesson){
                     const id = Number(lesson.id);
                     const available = Number(lesson.availableInventory) || 0;
@@ -440,7 +438,7 @@
                   return /^[A-Za-z\s]{2,}$/.test(this.order.fullName);
               },
               isNumberValid: function () {
-                  // digits only, at least 7 digits (you can tweak)
+                  // digits only, at least 7 digits
                   return /^[0-9]{9,}$/.test(this.order.number);
               },
               isOrderValid: function () {

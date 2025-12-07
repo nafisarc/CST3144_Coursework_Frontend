@@ -3,13 +3,13 @@ body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #f8f5ff; /* very light lavender */
+    background-color: #f8f5ff;
     color: #444;
 }
 
 /* Header */
 header {
-    background-color: #ffe3ec; /* pastel pink */
+    background-color: #ffe3ec; 
     padding: 20px;
     display: flex;
     justify-content: space-between;
@@ -25,11 +25,11 @@ header {
 header h1 {
     margin: 0;
     font-size: 28px;
-    color: #5b4b8a; /* muted purple */
+    color: #5b4b8a;
 }
 
 header button {
-    background-color: #c9f2ff; /* pastel blue */
+    background-color: #c9f2ff; 
     border: none;
     padding: 10px 15px;
     border-radius: 8px;
@@ -68,7 +68,6 @@ header button:hover {
 }
 .sort-toggle-btn:hover { background: #b4e9f7; }
 
-/* tiny utility to hide visually but keep accessible */
 .visually-hidden {
   border: 0 !important;
   clip: rect(1px, 1px, 1px, 1px) !important;
@@ -212,7 +211,7 @@ main {
 /* Make images fixed width */
 .lesson-card figure {
     margin: 0;
-    flex: 0 0 120px; /* fixed image column */
+    flex: 0 0 120px; 
     display: flex;
     align-items: center;
     justify-content: center;
@@ -260,7 +259,7 @@ main {
     color: #444;
 }
 
-/* Meta row: price, availability, rating, button aligned nicely */
+/* Meta row: price, availability, rating, button */
 .lesson-meta {
     display: flex;
     align-items: center;
@@ -271,7 +270,7 @@ main {
 
 /* Buttons inside lesson cards */
 .lesson-card button {
-    background-color: #d7ffd9; /* mint pastel */
+    background-color: #d7ffd9; 
     border: none;
     padding: 6px 10px;
     border-radius: 6px;
@@ -286,12 +285,10 @@ main {
 /* Small rating style */
 .rating {
     font-size: 14px;
-    color: #f6b26b; /* pleasant golden */
+    color: #f6b26b;
 }
 
-/* --------------------
-   CART ITEMS PREVIEW
-   -------------------- */
+/* CART ITEMS PREVIEW */
 .cart-items-section {
     background-color: #fff;
     border-radius: 12px;
