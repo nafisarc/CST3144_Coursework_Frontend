@@ -5,8 +5,15 @@ const API_BASE = "https://cst3144-coursework-0xsh.onrender.com/collection";
 const LESSONS_URL = `${API_BASE}/lessons`;
 
 // GET /collection/lessons
-function fetchLessons() {
-  return fetch(LESSONS_URL)
+function fetchLessons(searchQuery) {
+  let url = LESSONS_URL;
+
+  if (searchQuery && searchQuery.trim()) {
+    const encoded = encodeURIComponent(searchQuery.trim());
+    url += `?q=${encoded}`;
+  }
+
+  return fetch(url)
     .then(function (response) {
       if (!response.ok) {
         throw new Error("Network response was not ok: " + response.status);
@@ -18,6 +25,7 @@ function fetchLessons() {
       throw error;
     });
 }
+
 
 // * POST /collection/orders
 function saveOrder(orderData) {

@@ -380,19 +380,26 @@
 
                 // SEARCH helpers
                 _doSearch: function() {
-                  const q = String(this.searchQuery || '').trim().toLowerCase();
+                  const q = String(this.searchQuery || '').trim();
+                  const self = this;
+
                   if (!q) {
                     this.searchResults = [];
                     return;
                   }
-                  this.searchResults = this.lessons.filter(function(l) {
-                    return (
-                      String(l.title).toLowerCase().includes(q) ||
-                      String(l.description).toLowerCase().includes(q) ||
-                      String(l.location || '').toLowerCase().includes(q)
-                    );
-                  });
+
+                  // Call backend search
+                  fetchLessons(q)
+                    .then(function(data) {
+                      console.log("Search results from API:", data);
+                      self.searchResults = data;
+                    })
+                    .catch(function(err) {
+                      console.error("Error fetching search results from API:", err);
+                      self.searchResults = []; // fallback if error
+                    });
                 },
+
                 clearSearch: function() {
                   this.searchQuery = '';
                   this.searchResults = [];
